@@ -125,11 +125,13 @@ class CWidgetTopHostsMonzphere extends CWidget {
 		
 		// Percorre as células para encontrar o índice correto
 		while (currentColumn < adjustedColumn && actualIndex < cells.length) {
-			const colspan = cells[actualIndex].colSpan || 1;
-			if (colspan === 2) {
+			// Verifica se a célula atual tem um bar gauge
+			const hasBarGauge = cells[actualIndex].querySelector('z-bar-gauge') !== null;
+			
+			if (hasBarGauge) {
 				// Se for uma coluna de barra, conta como uma única coluna
 				currentColumn += 1;
-				actualIndex += 1; // Avança apenas 1 para manter o alinhamento
+				actualIndex += 2; // Pula a célula do valor
 			}
 			else {
 				currentColumn += 1;
@@ -147,6 +149,21 @@ class CWidgetTopHostsMonzphere extends CWidget {
 			const barGauge = cell.querySelector('z-bar-gauge');
 			if (barGauge) {
 				return barGauge.getAttribute('value');
+			}
+			// Se não encontrou o bar gauge, tenta a próxima célula
+			const nextCell = cells[actualIndex + 1];
+			if (nextCell) {
+				const hintbox = nextCell.querySelector('[data-hintbox]');
+				if (hintbox) {
+					const hintboxContent = hintbox.getAttribute('data-hintbox-contents');
+					if (hintboxContent) {
+						const match = hintboxContent.match(/>([\d.]+)</);
+						if (match) {
+							return match[1];
+						}
+					}
+					return hintbox.textContent;
+				}
 			}
 		}
 
