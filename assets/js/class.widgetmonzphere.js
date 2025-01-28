@@ -99,10 +99,21 @@ class CWidgetTopHostsMonzphere extends CWidget {
 			let valueA = this.#getCellValue(a, column);
 			let valueB = this.#getCellValue(b, column);
 
+			if (valueA === '' && valueB === '') {
+				return 0;
+			}
+			if (valueA === '') {
+				return order === 'asc' ? -1 : 1;
+			}
+			if (valueB === '') {
+				return order === 'asc' ? 1 : -1;
+			}
+
 			if (!isNaN(valueA) && !isNaN(valueB)) {
 				valueA = parseFloat(valueA);
 				valueB = parseFloat(valueB);
 			}
+			
 			if (order === 'asc') {
 				return valueA > valueB ? 1 : -1;
 			}
