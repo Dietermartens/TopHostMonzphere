@@ -11,38 +11,29 @@
 ** You should have received a copy of the GNU Affero General Public License along with this program.
 ** If not, see <https://www.gnu.org/licenses/>.
 **/
-
-
 class CWidgetTopHostsMonzphere extends CWidget {
-
 	/**
 	 * Table body of top hosts.
 	 *
 	 * @type {HTMLElement|null}
 	 */
 	#table_body = null;
-
 	/**
 	 * ID of selected host.
 	 *
 	 * @type {string}
 	 */
 	#selected_host_id = '';
-
 	#current_sort = {
 		column: null,
 		order: 'asc'
 	};
-
 	setContents(response) {
 		super.setContents(response);
-
 		this.#table_body = this._contents.querySelector(`.${ZBX_STYLE_LIST_TABLE} tbody`);
-
 		if (this.#table_body !== null) {
 			if (this.#selected_host_id !== '') {
 				const row = this.#table_body.querySelector(`tr[data-hostid="${this.#selected_host_id}"]`);
-
 				if (row !== null) {
 					this.#selectHost();
 				}
@@ -50,7 +41,6 @@ class CWidgetTopHostsMonzphere extends CWidget {
 					this.#selected_host_id = '';
 				}
 			}
-
 			this.#table_body.addEventListener('click', e => this.#onTableBodyClick(e));
 			
 			// Adiciona listener para os headers da tabela
@@ -60,30 +50,22 @@ class CWidgetTopHostsMonzphere extends CWidget {
 			});
 		}
 	}
-
 	#selectHost() {
 		const rows = this.#table_body.querySelectorAll('tr[data-hostid]');
-
 		for (const row of rows) {
 			row.classList.toggle(ZBX_STYLE_ROW_SELECTED, row.dataset.hostid === this.#selected_host_id);
 		}
 	}
-
 	#onTableBodyClick(e) {
 		if (e.target.closest('a') !== null || e.target.closest('[data-hintbox="1"]') !== null) {
 			return;
 		}
-
 		const row = e.target.closest('tr');
-
 		if (row !== null) {
 			const hostid = row.dataset.hostid;
-
 			if (hostid !== undefined) {
 				this.#selected_host_id = hostid;
-
 				this.#selectHost();
-
 				this.broadcast({
 					[CWidgetsData.DATA_TYPE_HOST_ID]: [hostid],
 					[CWidgetsData.DATA_TYPE_HOST_IDS]: [hostid]
@@ -91,11 +73,9 @@ class CWidgetTopHostsMonzphere extends CWidget {
 			}
 		}
 	}
-
 	#onHeaderClick(e) {
 		const header = e.currentTarget;
 		const column = header.getAttribute('data-column');
-
 		// Inverte a ordem se clicar na mesma coluna
 		if (this.#current_sort.column === column) {
 			this.#current_sort.order = this.#current_sort.order === 'asc' ? 'desc' : 'asc';
@@ -104,89 +84,85 @@ class CWidgetTopHostsMonzphere extends CWidget {
 			this.#current_sort.column = column;
 			this.#current_sort.order = 'asc';
 		}
-
 		// Remove classes de ordenação de todos os headers
 		this._contents.querySelectorAll('.sortable').forEach(h => {
 			h.classList.remove('sort-asc', 'sort-desc');
 		});
-
 		// Adiciona classe de ordenação ao header atual
 		header.classList.add(`sort-${this.#current_sort.order}`);
-
 		this.#sortTable(column, this.#current_sort.order);
 	}
-
 	#sortTable(column, order) {
 		const rows = Array.from(this.#table_body.querySelectorAll('tr'));
 		
 		rows.sort((a, b) => {
 			let valueA = this.#getCellValue(a, column);
 			let valueB = this.#getCellValue(b, column);
-
-			// Força a conversão para número removendo qualquer caractere não numérico
-			valueA = parseFloat(valueA.toString().replace(/[^\d.-]/g, ''));
-			valueB = parseFloat(valueB.toString().replace(/[^\d.-]/g, ''));
-
-			// Se algum valor não for número válido, trata como 0
-			valueA = isNaN(valueA) ? 0 : valueA;
-			valueB = isNaN(valueB) ? 0 : valueB;
-
+			// Converte para número se possível
+			if (!isNaN(valueA) && !isNaN(valueB)) {
+				valueA = parseFloat(valueA);
+				valueB = parseFloat(valueB);
+			}
 			if (order === 'asc') {
-				return valueA - valueB;
+				return valueA > valueB ? 1 : -1;
 			}
 			else {
-				return valueB - valueA;
+				return valueA < valueB ? 1 : -1;
 			}
 		});
-
 		// Reordena as linhas na tabela
 		rows.forEach(row => this.#table_body.appendChild(row));
 	}
-
 	#getCellValue(row, column) {
-		// Ajusta o índice da coluna para displays em barra que usam 2 colunas
 		const cells = row.cells;
+		const headers = this._contents.querySelectorAll('th');
 		let adjustedColumn = parseInt(column);
 		let currentColumn = 0;
 		let actualIndex = 0;
-
+		
+		// Verifica se o header da coluna tem colspan=2 (é um bar gauge)
+		const isBarGaugeColumn = headers[adjustedColumn].colSpan === 2;
+		
 		// Percorre as células para encontrar o índice correto
 		while (currentColumn < adjustedColumn && actualIndex < cells.length) {
 			const colspan = cells[actualIndex].colSpan || 1;
-			currentColumn += 1;
-			actualIndex += colspan;
+			if (colspan === 2) {
+				// Se for uma coluna de barra, conta como uma única coluna
+				currentColumn += 1;
+				actualIndex += 1; // Avança apenas 1 para manter o alinhamento
+			}
+			else {
+				currentColumn += 1;
+				actualIndex += 1;
+			}
 		}
-
-		const cell = cells[actualIndex];
 		
+		const cell = cells[actualIndex];
 		if (!cell) {
 			return '';
 		}
 
-		// Tenta obter o valor numérico do hint
-		const hintbox = cell.querySelector('.js-hintbox');
+		// Se for uma coluna de bar gauge, precisamos pegar o valor do z-bar-gauge
+		if (isBarGaugeColumn) {
+			const barGauge = cell.querySelector('z-bar-gauge');
+			if (barGauge) {
+				return barGauge.getAttribute('value');
+			}
+		}
+
+		// Para células normais (as is)
+		const hintbox = cell.querySelector('[data-hintbox]');
 		if (hintbox) {
+			const hintboxContent = hintbox.getAttribute('data-hintbox-contents');
+			if (hintboxContent) {
+				const match = hintboxContent.match(/>([\d.]+)</);
+				if (match) {
+					return match[1];
+				}
+			}
 			return hintbox.textContent;
 		}
 
-		// Para barras, procura o valor numérico na célula adjacente
-		if (cell.querySelector('.bar-gauge')) {
-			const valueCell = cells[actualIndex + 1];
-			if (valueCell) {
-				const valueDiv = valueCell.querySelector('div');
-				return valueDiv ? valueDiv.textContent.trim() : '';
-			}
-			return '';
-		}
-
-		// Caso padrão - retorna o texto da célula
-		const text = cell.textContent.trim();
-		
-		// Remove o símbolo de porcentagem e converte para número se for uma porcentagem
-		if (text.endsWith('%')) {
-			return parseFloat(text.replace('%', ''));
-		}
-
-		return text;
+		return cell.textContent.trim();
 	}
 }
