@@ -43,7 +43,7 @@ class CWidgetTopHostsMonzphere extends CWidget {
 			}
 			this.#table_body.addEventListener('click', e => this.#onTableBodyClick(e));
 			
-			// Adiciona listener para os headers da tabela
+
 			const headers = this._contents.querySelectorAll('.sortable');
 			headers.forEach(header => {
 				header.addEventListener('click', e => this.#onHeaderClick(e));
@@ -76,7 +76,7 @@ class CWidgetTopHostsMonzphere extends CWidget {
 	#onHeaderClick(e) {
 		const header = e.currentTarget;
 		const column = header.getAttribute('data-column');
-		// Inverte a ordem se clicar na mesma coluna
+
 		if (this.#current_sort.column === column) {
 			this.#current_sort.order = this.#current_sort.order === 'asc' ? 'desc' : 'asc';
 		}
@@ -84,11 +84,11 @@ class CWidgetTopHostsMonzphere extends CWidget {
 			this.#current_sort.column = column;
 			this.#current_sort.order = 'asc';
 		}
-		// Remove classes de ordenação de todos os headers
+
 		this._contents.querySelectorAll('.sortable').forEach(h => {
 			h.classList.remove('sort-asc', 'sort-desc');
 		});
-		// Adiciona classe de ordenação ao header atual
+
 		header.classList.add(`sort-${this.#current_sort.order}`);
 		this.#sortTable(column, this.#current_sort.order);
 	}
@@ -98,7 +98,7 @@ class CWidgetTopHostsMonzphere extends CWidget {
 		rows.sort((a, b) => {
 			let valueA = this.#getCellValue(a, column);
 			let valueB = this.#getCellValue(b, column);
-			// Converte para número se possível
+
 			if (!isNaN(valueA) && !isNaN(valueB)) {
 				valueA = parseFloat(valueA);
 				valueB = parseFloat(valueB);
@@ -110,7 +110,7 @@ class CWidgetTopHostsMonzphere extends CWidget {
 				return valueA < valueB ? 1 : -1;
 			}
 		});
-		// Reordena as linhas na tabela
+
 		rows.forEach(row => this.#table_body.appendChild(row));
 	}
 	#getCellValue(row, column) {
@@ -120,23 +120,27 @@ class CWidgetTopHostsMonzphere extends CWidget {
 		let currentColumn = 0;
 		let actualIndex = 0;
 		
-		// Verifica se o header da coluna tem colspan=2 (é um bar gauge)
-		const isBarGaugeColumn = headers[adjustedColumn].colSpan === 2;
+		const barGaugeColumns = new Set();
+		let headerIndex = 0;
 		
-		// Percorre as células para encontrar o índice correto
-		while (currentColumn < adjustedColumn && actualIndex < cells.length) {
-			// Verifica se a célula atual tem um bar gauge
-			const hasBarGauge = cells[actualIndex].querySelector('z-bar-gauge') !== null;
-			
-			if (hasBarGauge) {
-				// Se for uma coluna de barra, conta como uma única coluna
-				currentColumn += 1;
-				actualIndex += 2; // Pula a célula do valor
+		headers.forEach((header, index) => {
+			if (header.colSpan === 2) {
+				barGaugeColumns.add(headerIndex);
+				headerIndex += 1;
 			}
 			else {
-				currentColumn += 1;
+				headerIndex += 1;
+			}
+		});
+
+		while (currentColumn < adjustedColumn) {
+			if (barGaugeColumns.has(currentColumn)) {
+				actualIndex += 2; 
+			}
+			else {
 				actualIndex += 1;
 			}
+			currentColumn += 1;
 		}
 		
 		const cell = cells[actualIndex];
@@ -144,13 +148,13 @@ class CWidgetTopHostsMonzphere extends CWidget {
 			return '';
 		}
 
-		// Se for uma coluna de bar gauge, precisamos pegar o valor do z-bar-gauge
-		if (isBarGaugeColumn) {
+
+		if (barGaugeColumns.has(adjustedColumn)) {
 			const barGauge = cell.querySelector('z-bar-gauge');
 			if (barGauge) {
 				return barGauge.getAttribute('value');
 			}
-			// Se não encontrou o bar gauge, tenta a próxima célula
+
 			const nextCell = cells[actualIndex + 1];
 			if (nextCell) {
 				const hintbox = nextCell.querySelector('[data-hintbox]');
@@ -166,18 +170,19 @@ class CWidgetTopHostsMonzphere extends CWidget {
 				}
 			}
 		}
+		else {
 
-		// Para células normais (as is)
-		const hintbox = cell.querySelector('[data-hintbox]');
-		if (hintbox) {
-			const hintboxContent = hintbox.getAttribute('data-hintbox-contents');
-			if (hintboxContent) {
-				const match = hintboxContent.match(/>([\d.]+)</);
-				if (match) {
-					return match[1];
+			const hintbox = cell.querySelector('[data-hintbox]');
+			if (hintbox) {
+				const hintboxContent = hintbox.getAttribute('data-hintbox-contents');
+				if (hintboxContent) {
+					const match = hintboxContent.match(/>([\d.]+)</);
+					if (match) {
+						return match[1];
+					}
 				}
+				return hintbox.textContent;
 			}
-			return hintbox.textContent;
 		}
 
 		return cell.textContent.trim();
