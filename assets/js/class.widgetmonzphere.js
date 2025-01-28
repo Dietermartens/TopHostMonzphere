@@ -123,17 +123,19 @@ class CWidgetTopHostsMonzphere extends CWidget {
 			let valueA = this.#getCellValue(a, column);
 			let valueB = this.#getCellValue(b, column);
 
-			// Converte para número se possível
-			if (!isNaN(valueA) && !isNaN(valueB)) {
-				valueA = parseFloat(valueA);
-				valueB = parseFloat(valueB);
-			}
+			// Força a conversão para número removendo qualquer caractere não numérico
+			valueA = parseFloat(valueA.toString().replace(/[^\d.-]/g, ''));
+			valueB = parseFloat(valueB.toString().replace(/[^\d.-]/g, ''));
+
+			// Se algum valor não for número válido, trata como 0
+			valueA = isNaN(valueA) ? 0 : valueA;
+			valueB = isNaN(valueB) ? 0 : valueB;
 
 			if (order === 'asc') {
-				return valueA > valueB ? 1 : -1;
+				return valueA - valueB;
 			}
 			else {
-				return valueA < valueB ? 1 : -1;
+				return valueB - valueA;
 			}
 		});
 
@@ -178,6 +180,13 @@ class CWidgetTopHostsMonzphere extends CWidget {
 		}
 
 		// Caso padrão - retorna o texto da célula
-		return cell.textContent.trim();
+		const text = cell.textContent.trim();
+		
+		// Remove o símbolo de porcentagem e converte para número se for uma porcentagem
+		if (text.endsWith('%')) {
+			return parseFloat(text.replace('%', ''));
+		}
+
+		return text;
 	}
 }
