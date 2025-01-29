@@ -38,19 +38,19 @@ else {
 			if ($column_config['display'] == CWidgetFieldColumnsList::DISPLAY_AS_IS) {
 				$header[] = (new CColHeader($column_config['name']))
 					->addClass(ZBX_STYLE_CENTER)
-					->addClass('sortable')
+					->addClass('sortable-monzphere')
 					->setAttribute('data-column', $column_index);
 			}
 			else {
 				$header[] = (new CColHeader($column_config['name']))
 					->setColSpan(2)
-					->addClass('sortable')
+					->addClass('sortable-monzphere')
 					->setAttribute('data-column', $column_index);
 			}
 		}
 		else {
 			$header[] = (new CColHeader($column_config['name']))
-				->addClass('sortable')
+				->addClass('sortable-monzphere')
 				->setAttribute('data-column', $column_index);
 		}
 	}
