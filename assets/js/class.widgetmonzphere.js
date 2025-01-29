@@ -44,7 +44,7 @@ class CWidgetTopHostsMonzphere extends CWidget {
 			this.#table_body.addEventListener('click', e => this.#onTableBodyClick(e));
 			
 
-			const headers = this._contents.querySelectorAll('.sortable');
+			const headers = this._contents.querySelectorAll('.sortable-monzphere');
 			headers.forEach(header => {
 				header.addEventListener('click', e => this.#onHeaderClick(e));
 			});
@@ -85,7 +85,7 @@ class CWidgetTopHostsMonzphere extends CWidget {
 			this.#current_sort.order = 'asc';
 		}
 
-		this._contents.querySelectorAll('.sortable').forEach(h => {
+		this._contents.querySelectorAll('.sortable-monzphere').forEach(h => {
 			h.classList.remove('sort-asc', 'sort-desc');
 		});
 
