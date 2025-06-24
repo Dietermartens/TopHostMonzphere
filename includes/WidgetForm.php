@@ -23,7 +23,6 @@ use Zabbix\Widgets\{
 
 use Zabbix\Widgets\Fields\{
 	CWidgetFieldCheckBox,
-	CWidgetFieldColumns,
 	CWidgetFieldIntegerBox,
 	CWidgetFieldMultiSelectGroup,
 	CWidgetFieldMultiSelectHost,
@@ -42,6 +41,21 @@ class WidgetForm extends CWidgetForm {
 
 	private const DEFAULT_HOSTS_COUNT = 10;
 	private const DEFAULT_ORDER_COLUMN = 0;
+
+	// Column data types
+	public const DATA_ITEM_VALUE = 1;
+	public const DATA_HOST_NAME = 2;
+	public const DATA_TEXT = 3;
+
+	// Column display types
+	public const DISPLAY_AS_IS = 0;
+	public const DISPLAY_BAR = 1;
+	public const DISPLAY_INDICATORS = 2;
+
+	// History data types
+	public const HISTORY_DATA_AUTO = 0;
+	public const HISTORY_DATA_HISTORY = 1;
+	public const HISTORY_DATA_TRENDS = 2;
 
 	private array $field_column_values = [];
 
@@ -87,15 +101,15 @@ class WidgetForm extends CWidgetForm {
 				$value['name'] = trim($value['name']);
 
 				switch ($value['data']) {
-					case CWidgetFieldColumns::DATA_ITEM_VALUE:
+					case self::DATA_ITEM_VALUE:
 						$this->field_column_values[$key] = $value['name'] === '' ? $value['item'] : $value['name'];
 						break;
 
-					case CWidgetFieldColumns::DATA_HOST_NAME:
+					case self::DATA_HOST_NAME:
 						$this->field_column_values[$key] = $value['name'] === '' ? _('Host name') : $value['name'];
 						break;
 
-					case CWidgetFieldColumns::DATA_TEXT:
+					case self::DATA_TEXT:
 						$this->field_column_values[$key] = $value['name'] === '' ? $value['text'] : $value['name'];
 						break;
 				}
@@ -132,7 +146,7 @@ class WidgetForm extends CWidgetForm {
 				)
 			)
 			->addField(
-				(new CWidgetFieldColumns('columns', _('Columns')))
+				(new CWidgetField('columns', _('Columns')))
 					->setFlags(CWidgetField::FLAG_NOT_EMPTY | CWidgetField::FLAG_LABEL_ASTERISK)
 			)
 			->addField(

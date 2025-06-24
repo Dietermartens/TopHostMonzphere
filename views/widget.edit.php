@@ -52,7 +52,19 @@ $form
 		new CWidgetFieldCheckBoxView($data['fields']['maintenance'])
 	)
 	->addField(
-		(new CWidgetFieldColumnsView($data['fields']['columns']))->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
+		(new CDiv())
+			->addClass('columns-field')
+			->setId('list_columns')
+			->addItem(
+				(new CTable())
+					->setHeader([
+						_('Name'),
+						_('Data'),
+						_('Display'),
+						_('Actions')
+					])
+					->addClass(ZBX_STYLE_TABLE_FORMS_SEPARATOR)
+			)
 	)
 	->addItem([
 		$column->getLabel(),

@@ -19,7 +19,7 @@
  * @var array $data
  */
 
-use Zabbix\Widgets\Fields\CWidgetFieldColumns;
+use Modules\TopHostsMonzphere\Includes\WidgetForm;
 
 $form = (new CForm())
 	->setName('tophosts_column')
@@ -57,9 +57,9 @@ $form_grid->addItem([
 		(new CSelect('data'))
 			->setValue($data['data'])
 			->addOptions(CSelect::createOptionsFromArray([
-				CWidgetFieldColumns::DATA_ITEM_VALUE => _('Item value'),
-				CWidgetFieldColumns::DATA_HOST_NAME => _('Host name'),
-				CWidgetFieldColumns::DATA_TEXT => _('Text')
+				WidgetForm::DATA_ITEM_VALUE => _('Item value'),
+				WidgetForm::DATA_HOST_NAME => _('Host name'),
+				WidgetForm::DATA_TEXT => _('Text')
 			]))
 			->setFocusableElementId('data')
 	)
@@ -131,9 +131,9 @@ $form_grid->addItem([
 	),
 	new CFormField(
 		(new CRadioButtonList('display', (int) $data['display']))
-			->addValue(_('As is'), CWidgetFieldColumns::DISPLAY_AS_IS)
-			->addValue(_('Bar'), CWidgetFieldColumns::DISPLAY_BAR)
-			->addValue(_('Indicators'), CWidgetFieldColumns::DISPLAY_INDICATORS)
+			->addValue(_('As is'), WidgetForm::DISPLAY_AS_IS)
+			->addValue(_('Bar'), WidgetForm::DISPLAY_BAR)
+			->addValue(_('Indicators'), WidgetForm::DISPLAY_INDICATORS)
 			->setModern()
 	)
 ]);
@@ -160,58 +160,21 @@ $form_grid->addItem([
 
 // Base color.
 $form_grid->addItem([
-	new CLabel(_('Base color'), 'lbl_base_color'),
-	new CFormField(new CColor('base_color', $data['base_color']))
+	new CLabel(_('Base color'), 'base_color'),
+	new CFormField(
+		(new CColorPicker('base_color', $data['base_color']))
+			->setWidth(ZBX_TEXTAREA_FILTER_SMALL_WIDTH)
+	)
 ]);
 
-// Thresholds table.
-$header_row = [
-	'',
-	(new CColHeader(_('Threshold')))->setWidth('100%'),
-	_('Action')
-];
-
-$thresholds = (new CDiv(
-	(new CTable())
-		->setId('thresholds_table')
-		->addClass(ZBX_STYLE_TABLE_FORMS)
-		->setHeader($header_row)
-		->setFooter(new CRow(
-			(new CCol(
-				(new CButtonLink(_('Add')))->addClass('element-table-add')
-			))->setColSpan(count($header_row))
-		))
-))
-	->addClass('table-forms-separator')
-	->setWidth(ZBX_TEXTAREA_STANDARD_WIDTH);
-
-$thresholds->addItem(
-	(new CTemplateTag('thresholds-row-tmpl'))
-		->addItem((new CRow([
-			(new CColor('thresholds[#{rowNum}][color]', '#{color}'))->appendColorPickerJs(false),
-			(new CTextBox('thresholds[#{rowNum}][threshold]', '#{threshold}', false))
-				->setWidth(ZBX_TEXTAREA_TINY_WIDTH)
-				->setAriaRequired(),
-			(new CButton('thresholds[#{rowNum}][remove]', _('Remove')))
-				->addClass(ZBX_STYLE_BTN_LINK)
-				->addClass('element-table-remove')
-		]))->addClass('form_row'))
-);
-
+// Thresholds.
 $form_grid->addItem([
-	new CLabel([
-		_('Thresholds'),
-		makeWarningIcon(_('This setting applies only to numeric data.'))
-	], 'thresholds_table'),
-	new CFormField($thresholds)
-]);
-
-// Decimal places.
-$form_grid->addItem([
-	new CLabel(_('Decimal places'), 'decimal_places'),
-	(new CFormField(
-		(new CNumericBox('decimal_places', $data['decimal_places'], 2))->setWidth(ZBX_TEXTAREA_NUMERIC_STANDARD_WIDTH)
-	))
+	new CLabel(_('Thresholds'), 'thresholds'),
+	new CFormField(
+		(new CDiv())
+			->addClass('thresholds-table')
+			->setId('thresholds_table')
+	)
 ]);
 
 // Aggregation function.
@@ -263,53 +226,75 @@ $form_grid->addItem(new CScriptTag([
 
 // History data.
 $form_grid->addItem([
-	new CLabel(
-		[
-			_('History data'),
-			(makeWarningIcon(
-				_('This setting applies only to numeric data. Non-numeric data will always be taken from history.')
-			))->setId('tophosts-column-history-data-warning')
-		],
-		'history'
-	),
+	new CLabel(_('History data'), 'history'),
 	new CFormField(
 		(new CRadioButtonList('history', (int) $data['history']))
-			->addValue(_('Auto'), CWidgetFieldColumns::HISTORY_DATA_AUTO)
-			->addValue(_('History'), CWidgetFieldColumns::HISTORY_DATA_HISTORY)
-			->addValue(_('Trends'), CWidgetFieldColumns::HISTORY_DATA_TRENDS)
+			->addValue(_('Auto'), WidgetForm::HISTORY_DATA_AUTO)
+			->addValue(_('History'), WidgetForm::HISTORY_DATA_HISTORY)
+			->addValue(_('Trends'), WidgetForm::HISTORY_DATA_TRENDS)
 			->setModern()
 	)
 ]);
 
-$form
-	->addItem($form_grid)
-	->addItem(
-		(new CScriptTag('
-			tophosts_column_edit_form.init('.json_encode([
-				'form_name' => $form->getName(),
-				'thresholds' => $data['thresholds'],
-				'thresholds_colors' => $data['thresholds_colors']
-			], JSON_THROW_ON_ERROR).');
-		'))->setOnDocumentReady()
-	);
+// Decimal places.
+$form_grid->addItem([
+	new CLabel(_('Decimal places'), 'decimal_places'),
+	new CFormField(
+		(new CTextBox('decimal_places', $data['decimal_places']))
+			->setWidth(ZBX_TEXTAREA_FILTER_SMALL_WIDTH)
+			->setAttribute('placeholder', '2')
+	)
+]);
 
-$output = [
-	'header'		=> array_key_exists('edit', $data) ? _('Update column') : _('New column'),
-	'script_inline'	=> implode('', $scripts).$this->readJsFile('column.edit.js.php', null, ''),
-	'body'			=> $form->toString(),
-	'buttons'		=> [
-		[
-			'title'		=> array_key_exists('edit', $data) ? _('Update') : _('Add'),
-			'keepOpen'	=> true,
-			'isSubmit'	=> true,
-			'action'	=> '$(document.forms.tophosts_column).trigger("process.form", [overlay])'
-		]
-	]
-];
+$form->addItem($form_grid);
 
-if ($data['user']['debug_mode'] == GROUP_DEBUG_MODE_ENABLED) {
-	CProfiler::getInstance()->stop();
-	$output['debug'] = CProfiler::getInstance()->make()->toString();
-}
+$form->addItem(
+	(new CDiv())
+		->addClass('tfoot')
+		->addItem(
+			(new CDiv())
+				->addClass('btn-container')
+				->addItem(
+					(new CButton('submit', _('Update')))
+						->setAttribute('data-action', 'update')
+						->addClass('btn-alt')
+				)
+				->addItem(
+					(new CButton('cancel', _('Cancel')))
+						->addClass('btn-alt')
+				)
+		)
+);
 
-echo json_encode($output, JSON_THROW_ON_ERROR);
+$form->show();
+
+// Thresholds table template.
+(new CTemplateTag('thresholds-row-tmpl'))->addItem(
+	(new CRow([
+		(new CCol(
+			(new CColorPicker('thresholds[#{rowNum}][color]', ''))
+				->setWidth(ZBX_TEXTAREA_FILTER_SMALL_WIDTH)
+		))->addClass('input-color-picker'),
+		(new CCol(
+			(new CTextBox('thresholds[#{rowNum}][threshold]', ''))
+				->setWidth(ZBX_TEXTAREA_FILTER_SMALL_WIDTH)
+				->setAttribute('placeholder', _('Threshold'))
+		)),
+		(new CCol(
+			(new CButton('remove', _('Remove')))
+				->addClass('btn-link btn-remove')
+		))
+	]))
+		->addClass('form_row')
+		->show()
+);
+
+(new CScriptTag('
+	document.addEventListener("DOMContentLoaded", function() {
+		tophosts_column_edit_form.init({
+			form_name: "tophosts_column",
+			thresholds: '.json_encode($data['thresholds']).',
+			thresholds_colors: '.json_encode($data['thresholds_colors']).'
+		});
+	});
+'))->show();

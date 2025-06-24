@@ -22,8 +22,7 @@
  */
 
 use Modules\TopHostsMonzphere\Widget;
-
-use Zabbix\Widgets\Fields\CWidgetFieldColumns;
+use Modules\TopHostsMonzphere\Includes\WidgetForm;
 
 $table = new CTableInfo();
 
@@ -34,8 +33,8 @@ else {
 	$header = [];
 
 	foreach ($data['configuration'] as $column_index => $column_config) {
-		if ($column_config['data'] == CWidgetFieldColumns::DATA_ITEM_VALUE) {
-			if ($column_config['display'] == CWidgetFieldColumns::DISPLAY_AS_IS) {
+		if ($column_config['data'] == WidgetForm::DATA_ITEM_VALUE) {
+			if ($column_config['display'] == WidgetForm::DISPLAY_AS_IS) {
 				$header[] = (new CColHeader($column_config['name']))
 					->addClass(ZBX_STYLE_CENTER)
 					->addClass('sortable-monzphere')
@@ -64,8 +63,8 @@ else {
 			$column_config = $data['configuration'][$i];
 
 			if ($column === null) {
-				if ($column_config['data'] == CWidgetFieldColumns::DATA_ITEM_VALUE
-						&& $column_config['display'] != CWidgetFieldColumns::DISPLAY_AS_IS) {
+				if ($column_config['data'] == WidgetForm::DATA_ITEM_VALUE
+						&& $column_config['display'] != WidgetForm::DISPLAY_AS_IS) {
 					$row[] = (new CCol(''))->setColSpan(2);
 				}
 				else {
@@ -77,8 +76,8 @@ else {
 
 			$color = $column_config['base_color'];
 
-			if ($column_config['data'] == CWidgetFieldColumns::DATA_ITEM_VALUE
-					&& $column_config['display'] == CWidgetFieldColumns::DISPLAY_AS_IS
+			if ($column_config['data'] == WidgetForm::DATA_ITEM_VALUE
+					&& $column_config['display'] == WidgetForm::DISPLAY_AS_IS
 					&& array_key_exists('thresholds', $column_config)) {
 				$is_numeric_data = in_array($column['item']['value_type'],
 					[ITEM_VALUE_TYPE_FLOAT, ITEM_VALUE_TYPE_UINT64]
@@ -100,7 +99,7 @@ else {
 			}
 
 			switch ($column_config['data']) {
-				case CWidgetFieldColumns::DATA_HOST_NAME:
+				case WidgetForm::DATA_HOST_NAME:
 					$row[] = (new CCol(
 						(new CLinkAction($column['value']))->setMenuPopup(CMenuPopupHelper::getHost($column['hostid']))
 					))
@@ -114,13 +113,13 @@ else {
 
 					break;
 
-				case CWidgetFieldColumns::DATA_TEXT:
+				case WidgetForm::DATA_TEXT:
 					$row[] = (new CCol($column['value']))
 						->addStyle($color !== '' ? 'background-color: #' . $color : null);
 
 					break;
 
-				case CWidgetFieldColumns::DATA_ITEM_VALUE:
+				case WidgetForm::DATA_ITEM_VALUE:
 					if ($column['item']['value_type'] == ITEM_VALUE_TYPE_BINARY) {
 						$formatted_value = italic(_('binary value'))->addClass($color === '' ? ZBX_STYLE_GREY : null);
 						$column['value'] = _('binary value');
@@ -136,7 +135,7 @@ else {
 						);
 					}
 
-					if ($column_config['display'] == CWidgetFieldColumns::DISPLAY_AS_IS) {
+					if ($column_config['display'] == WidgetForm::DISPLAY_AS_IS) {
 						$row[] = (new CCol())
 							->addStyle($color !== '' ? 'background-color: #' . $color : null)
 							->addItem(
@@ -166,7 +165,7 @@ else {
 							: $column_config['max']
 						);
 
-					if ($column_config['display'] == CWidgetFieldColumns::DISPLAY_BAR) {
+					if ($column_config['display'] == WidgetForm::DISPLAY_BAR) {
 						$bar_gauge->setAttribute('solid', 1);
 					}
 

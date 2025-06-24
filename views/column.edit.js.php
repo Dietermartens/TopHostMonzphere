@@ -14,7 +14,7 @@
 **/
 
 
-use Zabbix\Widgets\Fields\CWidgetFieldColumns;
+use Modules\TopHostsMonzphere\Includes\WidgetForm;
 
 ?>
 
@@ -80,11 +80,11 @@ window.tophosts_column_edit_form = new class {
 	}
 
 	_update() {
-		const display_as_is = ($('[name="display"]:checked').val() == <?= CWidgetFieldColumns::DISPLAY_AS_IS ?>);
+		const display_as_is = ($('[name="display"]:checked').val() == <?= WidgetForm::DISPLAY_AS_IS ?>);
 		const history_data_trends = ($('[name="history"]:checked').val() ==
-			<?= CWidgetFieldColumns::HISTORY_DATA_TRENDS ?>);
-		const data_item_value = ($('[name="data"]').val() == <?= CWidgetFieldColumns::DATA_ITEM_VALUE ?>);
-		const data_text = ($('[name="data"]').val() == <?= CWidgetFieldColumns::DATA_TEXT ?>);
+			<?= WidgetForm::HISTORY_DATA_TRENDS ?>);
+		const data_item_value = ($('[name="data"]').val() == <?= WidgetForm::DATA_ITEM_VALUE ?>);
+		const data_text = ($('[name="data"]').val() == <?= WidgetForm::DATA_TEXT ?>);
 		const aggregate_function = parseInt(document.getElementById('aggregate_function').value);
 
 		$('#item', this._$widget_form).multiSelect(data_item_value ? 'enable' : 'disable');
@@ -96,79 +96,47 @@ window.tophosts_column_edit_form = new class {
 		this._$thresholds_table.toggleClass('disabled', !data_item_value);
 
 		// Toggle warning icons for non-numeric items settings.
-		if (data_item_value) {
-			const aggregate_warning_functions = [<?= AGGREGATE_AVG ?>, <?= AGGREGATE_MIN ?>, <?= AGGREGATE_MAX ?>,
-				<?= AGGREGATE_SUM ?>
-			];
-
-			document.getElementById('tophosts-column-aggregate-function-warning').style.display =
-					aggregate_warning_functions.includes(aggregate_function)
-				? ''
-				: 'none';
-
-			document.getElementById('tophosts-column-display-warning').style.display = display_as_is ? 'none' : '';
-			document.getElementById('tophosts-column-history-data-warning').style.display = history_data_trends
-				? ''
-				: 'none';
-		}
-
-		this._$widget_form[0].fields.time_period.disabled = !data_item_value
-			|| aggregate_function == <?= AGGREGATE_NONE ?>;
-
-		// Toggle visibility of disabled form elements.
-		$('.form-grid > label', this._$widget_form).each((i, elm) => {
-			const form_field = $(elm).next();
-			const is_visible = (form_field.find(':disabled,.disabled').length == 0);
-
-			$(elm).toggle(is_visible);
-			form_field.toggle(is_visible);
-		});
+		$('#tophosts-column-display-warning').toggle(display_as_is);
+		$('#tophosts-column-aggregate-function-warning').toggle(aggregate_function == <?= AGGREGATE_COUNT ?>);
 	}
 
 	handleFormSubmit(e, overlay) {
-		const curl = new Curl(e.target.getAttribute('action'));
-		const fields = getFormFields(e.target);
+		const formData = getFormFields(this._$widget_form[0]);
 
-		fetch(curl.getUrl(), {
-			method: 'POST',
-			headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
-			body: urlEncodeData(fields)
-		})
-			.then(response => response.json())
-			.then(response => {
-				if ('error' in response) {
-					throw {error: response.error};
-				}
+		// Validate required fields
+		if (!formData.name.trim()) {
+			alert(_('Name is required'));
+			return;
+		}
 
-				overlayDialogueDestroy(overlay.dialogueid);
+		if (formData.data == <?= WidgetForm::DATA_ITEM_VALUE ?> && !formData.item.trim()) {
+			alert(_('Item name is required'));
+			return;
+		}
 
-				overlay.$dialogue[0].dispatchEvent(new CustomEvent('dialogue.submit', {detail: response}));
-			})
-			.catch((exception) => {
-				const form = this._$widget_form[0];
+		if (formData.data == <?= WidgetForm::DATA_TEXT ?> && !formData.text.trim()) {
+			alert(_('Text is required'));
+			return;
+		}
 
-				for (const element of form.parentNode.children) {
-					if (element.matches('.msg-good, .msg-bad, .msg-warning')) {
-						element.parentNode.removeChild(element);
-					}
-				}
+		// Process thresholds
+		const thresholds = [];
+		$('#thresholds_table tr.form_row').each(function() {
+			const color = $(this).find('input[name$="[color]"]').val();
+			const threshold = $(this).find('input[name$="[threshold]"]').val();
+			
+			if (threshold.trim()) {
+				thresholds.push({
+					color: color || '#97AAB3',
+					threshold: threshold.trim()
+				});
+			}
+		});
 
-				let title, messages;
+		formData.thresholds = thresholds;
 
-				if (typeof exception === 'object' && 'error' in exception) {
-					title = exception.error.title;
-					messages = exception.error.messages;
-				}
-				else {
-					messages = [<?= json_encode(_('Unexpected server error.')) ?>];
-				}
-
-				const message_box = makeMessageBox('bad', messages, title)[0];
-
-				form.parentNode.insertBefore(message_box, form);
-			})
-			.finally(() => {
-				overlay.unsetLoading();
-			});
+		// Close popup and update parent form
+		overlay.close();
+		window.widget_tophosts_form.updateColumns({detail: formData});
 	}
 };
