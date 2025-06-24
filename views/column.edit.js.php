@@ -14,7 +14,7 @@
 **/
 
 
-use Zabbix\Widgets\Fields\CWidgetFieldColumnsList;
+use Zabbix\Widgets\Fields\CWidgetFieldColumns;
 
 ?>
 
@@ -80,11 +80,11 @@ window.tophosts_column_edit_form = new class {
 	}
 
 	_update() {
-		const display_as_is = ($('[name="display"]:checked').val() == <?= CWidgetFieldColumnsList::DISPLAY_AS_IS ?>);
+		const display_as_is = ($('[name="display"]:checked').val() == <?= CWidgetFieldColumns::DISPLAY_AS_IS ?>);
 		const history_data_trends = ($('[name="history"]:checked').val() ==
-			<?= CWidgetFieldColumnsList::HISTORY_DATA_TRENDS ?>);
-		const data_item_value = ($('[name="data"]').val() == <?= CWidgetFieldColumnsList::DATA_ITEM_VALUE ?>);
-		const data_text = ($('[name="data"]').val() == <?= CWidgetFieldColumnsList::DATA_TEXT ?>);
+			<?= CWidgetFieldColumns::HISTORY_DATA_TRENDS ?>);
+		const data_item_value = ($('[name="data"]').val() == <?= CWidgetFieldColumns::DATA_ITEM_VALUE ?>);
+		const data_text = ($('[name="data"]').val() == <?= CWidgetFieldColumns::DATA_TEXT ?>);
 		const aggregate_function = parseInt(document.getElementById('aggregate_function').value);
 
 		$('#item', this._$widget_form).multiSelect(data_item_value ? 'enable' : 'disable');

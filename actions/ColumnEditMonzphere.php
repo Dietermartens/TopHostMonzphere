@@ -25,7 +25,7 @@ use CController,
 use Zabbix\Widgets\CWidgetField;
 
 use Zabbix\Widgets\Fields\{
-	CWidgetFieldColumnsList,
+	CWidgetFieldColumns,
 	CWidgetFieldTimePeriod
 };
 
@@ -36,7 +36,7 @@ class ColumnEditMonzphere extends CController {
 	}
 
 	protected function checkInput(): bool {
-		// Validation is done by CWidgetFieldColumnsList
+		// Validation is done by CWidgetFieldColumns
 		$fields = [
 			'name' =>				'string',
 			'data' =>				'int32',
@@ -78,7 +78,7 @@ class ColumnEditMonzphere extends CController {
 
 		$input = $this->getInputAll();
 
-		$field = new CWidgetFieldColumnsList('columns', '');
+		$field = new CWidgetFieldColumns('columns', '');
 
 		if (!$this->hasInput('edit') && !$this->hasInput('update')) {
 			$input += self::getColumnDefaults();
@@ -104,7 +104,7 @@ class ColumnEditMonzphere extends CController {
 		if (!$this->hasInput('update')) {
 			$data = [
 				'action' => $this->getAction(),
-				'thresholds_colors' => CWidgetFieldColumnsList::THRESHOLDS_DEFAULT_COLOR_PALETTE,
+				'thresholds_colors' => CWidgetFieldColumns::THRESHOLDS_DEFAULT_COLOR_PALETTE,
 				'templateid' => $this->hasInput('templateid') ? $this->getInput('templateid') : null,
 				'errors' => hasErrorMessages() ? getMessages() : null,
 				'user' => [
@@ -174,7 +174,7 @@ class ColumnEditMonzphere extends CController {
 		if ($column_defaults === null) {
 			$column_defaults = [
 				'name' => '',
-				'data' => CWidgetFieldColumnsList::DATA_ITEM_VALUE,
+				'data' => CWidgetFieldColumns::DATA_ITEM_VALUE,
 				'item' => '',
 				'aggregate_function' => AGGREGATE_NONE,
 				'time_period' => [
@@ -182,11 +182,11 @@ class ColumnEditMonzphere extends CController {
 						CWidgetField::REFERENCE_DASHBOARD, CWidgetsData::DATA_TYPE_TIME_PERIOD
 					)
 				],
-				'display' => CWidgetFieldColumnsList::DISPLAY_AS_IS,
-				'history' => CWidgetFieldColumnsList::HISTORY_DATA_AUTO,
+				'display' => CWidgetFieldColumns::DISPLAY_AS_IS,
+				'history' => CWidgetFieldColumns::HISTORY_DATA_AUTO,
 				'min' => '',
 				'max' => '',
-				'decimal_places' => CWidgetFieldColumnsList::DEFAULT_DECIMAL_PLACES,
+				'decimal_places' => CWidgetFieldColumns::DEFAULT_DECIMAL_PLACES,
 				'base_color' => '',
 				'text' => '',
 				'thresholds' => []

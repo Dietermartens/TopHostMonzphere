@@ -28,7 +28,7 @@ use API,
 	Manager;
 
 use Modules\TopHostsMonzphere\Widget;
-use Zabbix\Widgets\Fields\CWidgetFieldColumnsList;
+use Zabbix\Widgets\Fields\CWidgetFieldColumns;
 
 class WidgetViewMonzphere extends CControllerDashboardWidgetView {
 
@@ -103,11 +103,11 @@ class WidgetViewMonzphere extends CControllerDashboardWidgetView {
 
 		foreach ($configuration as $column_index => $column) {
 			switch ($column['data']) {
-				case CWidgetFieldColumnsList::DATA_TEXT:
+				case CWidgetFieldColumns::DATA_TEXT:
 					$has_text_column = true;
 					break 2;
 
-				case CWidgetFieldColumnsList::DATA_ITEM_VALUE:
+				case CWidgetFieldColumns::DATA_ITEM_VALUE:
 					$item_names[$column_index] = $column['item'];
 					break;
 			}
@@ -142,7 +142,7 @@ class WidgetViewMonzphere extends CControllerDashboardWidgetView {
 		$master_entity_values = [];
 
 		switch ($master_column['data']) {
-			case CWidgetFieldColumnsList::DATA_ITEM_VALUE:
+			case CWidgetFieldColumns::DATA_ITEM_VALUE:
 				$master_entities = array_key_exists($master_column_index, $items)
 					? $items[$master_column_index]
 					: self::getItems($master_column['item'], self::isNumericOnlyColumn($master_column), $groupids,
@@ -151,11 +151,11 @@ class WidgetViewMonzphere extends CControllerDashboardWidgetView {
 				$master_entity_values = self::getItemValues($master_entities, $master_column);
 				break;
 
-			case CWidgetFieldColumnsList::DATA_HOST_NAME:
+			case CWidgetFieldColumns::DATA_HOST_NAME:
 				$master_entity_values = array_column($master_entities, 'name', 'hostid');
 				break;
 
-			case CWidgetFieldColumnsList::DATA_TEXT:
+			case CWidgetFieldColumns::DATA_TEXT:
 				$master_entity_values = CMacrosResolverHelper::resolveWidgetTopHostsTextColumns(
 					[$master_column_index => $master_column['text']], $hostids
 				)[$master_column_index];
@@ -169,7 +169,7 @@ class WidgetViewMonzphere extends CControllerDashboardWidgetView {
 				break;
 		}
 
-		$master_items_only_numeric_present = $master_column['data'] == CWidgetFieldColumnsList::DATA_ITEM_VALUE
+		$master_items_only_numeric_present = $master_column['data'] == CWidgetFieldColumns::DATA_ITEM_VALUE
 			&& ($master_column['aggregate_function'] == AGGREGATE_COUNT
 				|| !array_filter($master_entities,
 					static function(array $item): bool {
@@ -242,17 +242,17 @@ class WidgetViewMonzphere extends CControllerDashboardWidgetView {
 		$text_columns = [];
 
 		foreach ($configuration as $column_index => &$column) {
-			if ($column['data'] == CWidgetFieldColumnsList::DATA_TEXT) {
+			if ($column['data'] == CWidgetFieldColumns::DATA_TEXT) {
 				$text_columns[$column_index] = $column['text'];
 				continue;
 			}
 
-			if ($column['data'] != CWidgetFieldColumnsList::DATA_ITEM_VALUE) {
+			if ($column['data'] != CWidgetFieldColumns::DATA_ITEM_VALUE) {
 				continue;
 			}
 
-			$calc_extremes = $column['display'] == CWidgetFieldColumnsList::DISPLAY_BAR
-				|| $column['display'] == CWidgetFieldColumnsList::DISPLAY_INDICATORS;
+			$calc_extremes = $column['display'] == CWidgetFieldColumns::DISPLAY_BAR
+				|| $column['display'] == CWidgetFieldColumns::DISPLAY_INDICATORS;
 
 			if ($column_index == $master_column_index) {
 				$column_items = $master_entities;
@@ -352,7 +352,7 @@ class WidgetViewMonzphere extends CControllerDashboardWidgetView {
 
 			foreach ($configuration as $column_index => $column) {
 				switch ($column['data']) {
-					case CWidgetFieldColumnsList::DATA_HOST_NAME:
+					case CWidgetFieldColumns::DATA_HOST_NAME:
 						$data = [
 							'value' => $hosts[$hostid]['name'],
 							'hostid' => $hostid,
@@ -367,12 +367,12 @@ class WidgetViewMonzphere extends CControllerDashboardWidgetView {
 
 						break;
 
-					case CWidgetFieldColumnsList::DATA_TEXT:
+					case CWidgetFieldColumns::DATA_TEXT:
 						$row[] = ['value' => $text_columns[$column_index][$hostid]];
 
 						break;
 
-					case CWidgetFieldColumnsList::DATA_ITEM_VALUE:
+					case CWidgetFieldColumns::DATA_ITEM_VALUE:
 						$row[] = array_key_exists($hostid, $item_values[$column_index])
 							? [
 								'value' => $item_values[$column_index][$hostid]['value'],
@@ -405,7 +405,7 @@ class WidgetViewMonzphere extends CControllerDashboardWidgetView {
 	 * @return bool
 	 */
 	private static function isNumericOnlyColumn(array $column): bool {
-		if ($column['display'] == CWidgetFieldColumnsList::DISPLAY_AS_IS) {
+		if ($column['display'] == CWidgetFieldColumns::DISPLAY_AS_IS) {
 			return CAggFunctionData::requiresNumericItem($column['aggregate_function']);
 		}
 
@@ -493,12 +493,12 @@ class WidgetViewMonzphere extends CControllerDashboardWidgetView {
 	}
 
 	private static function addDataSource(array $items, int $time, array $column): array {
-		if ($column['history'] == CWidgetFieldColumnsList::HISTORY_DATA_AUTO) {
+		if ($column['history'] == CWidgetFieldColumns::HISTORY_DATA_AUTO) {
 			$items = CItemHelper::addDataSource($items, $time);
 		}
 		else {
 			foreach ($items as &$item) {
-				$item['source'] = $column['history'] == CWidgetFieldColumnsList::HISTORY_DATA_TRENDS
+				$item['source'] = $column['history'] == CWidgetFieldColumns::HISTORY_DATA_TRENDS
 					? 'trends'
 					: 'history';
 			}

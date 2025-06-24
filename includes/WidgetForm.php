@@ -23,7 +23,7 @@ use Zabbix\Widgets\{
 
 use Zabbix\Widgets\Fields\{
 	CWidgetFieldCheckBox,
-	CWidgetFieldColumnsList,
+	CWidgetFieldColumns,
 	CWidgetFieldIntegerBox,
 	CWidgetFieldMultiSelectGroup,
 	CWidgetFieldMultiSelectHost,
@@ -87,15 +87,15 @@ class WidgetForm extends CWidgetForm {
 				$value['name'] = trim($value['name']);
 
 				switch ($value['data']) {
-					case CWidgetFieldColumnsList::DATA_ITEM_VALUE:
+					case CWidgetFieldColumns::DATA_ITEM_VALUE:
 						$this->field_column_values[$key] = $value['name'] === '' ? $value['item'] : $value['name'];
 						break;
 
-					case CWidgetFieldColumnsList::DATA_HOST_NAME:
+					case CWidgetFieldColumns::DATA_HOST_NAME:
 						$this->field_column_values[$key] = $value['name'] === '' ? _('Host name') : $value['name'];
 						break;
 
-					case CWidgetFieldColumnsList::DATA_TEXT:
+					case CWidgetFieldColumns::DATA_TEXT:
 						$this->field_column_values[$key] = $value['name'] === '' ? $value['text'] : $value['name'];
 						break;
 				}
@@ -132,7 +132,7 @@ class WidgetForm extends CWidgetForm {
 				)
 			)
 			->addField(
-				(new CWidgetFieldColumnsList('columns', _('Columns')))
+				(new CWidgetFieldColumns('columns', _('Columns')))
 					->setFlags(CWidgetField::FLAG_NOT_EMPTY | CWidgetField::FLAG_LABEL_ASTERISK)
 			)
 			->addField(

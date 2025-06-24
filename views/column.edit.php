@@ -19,7 +19,7 @@
  * @var array $data
  */
 
-use Zabbix\Widgets\Fields\CWidgetFieldColumnsList;
+use Zabbix\Widgets\Fields\CWidgetFieldColumns;
 
 $form = (new CForm())
 	->setName('tophosts_column')
@@ -57,9 +57,9 @@ $form_grid->addItem([
 		(new CSelect('data'))
 			->setValue($data['data'])
 			->addOptions(CSelect::createOptionsFromArray([
-				CWidgetFieldColumnsList::DATA_ITEM_VALUE => _('Item value'),
-				CWidgetFieldColumnsList::DATA_HOST_NAME => _('Host name'),
-				CWidgetFieldColumnsList::DATA_TEXT => _('Text')
+				CWidgetFieldColumns::DATA_ITEM_VALUE => _('Item value'),
+				CWidgetFieldColumns::DATA_HOST_NAME => _('Host name'),
+				CWidgetFieldColumns::DATA_TEXT => _('Text')
 			]))
 			->setFocusableElementId('data')
 	)
@@ -131,9 +131,9 @@ $form_grid->addItem([
 	),
 	new CFormField(
 		(new CRadioButtonList('display', (int) $data['display']))
-			->addValue(_('As is'), CWidgetFieldColumnsList::DISPLAY_AS_IS)
-			->addValue(_('Bar'), CWidgetFieldColumnsList::DISPLAY_BAR)
-			->addValue(_('Indicators'), CWidgetFieldColumnsList::DISPLAY_INDICATORS)
+			->addValue(_('As is'), CWidgetFieldColumns::DISPLAY_AS_IS)
+			->addValue(_('Bar'), CWidgetFieldColumns::DISPLAY_BAR)
+			->addValue(_('Indicators'), CWidgetFieldColumns::DISPLAY_INDICATORS)
 			->setModern()
 	)
 ]);
@@ -274,9 +274,9 @@ $form_grid->addItem([
 	),
 	new CFormField(
 		(new CRadioButtonList('history', (int) $data['history']))
-			->addValue(_('Auto'), CWidgetFieldColumnsList::HISTORY_DATA_AUTO)
-			->addValue(_('History'), CWidgetFieldColumnsList::HISTORY_DATA_HISTORY)
-			->addValue(_('Trends'), CWidgetFieldColumnsList::HISTORY_DATA_TRENDS)
+			->addValue(_('Auto'), CWidgetFieldColumns::HISTORY_DATA_AUTO)
+			->addValue(_('History'), CWidgetFieldColumns::HISTORY_DATA_HISTORY)
+			->addValue(_('Trends'), CWidgetFieldColumns::HISTORY_DATA_TRENDS)
 			->setModern()
 	)
 ]);
